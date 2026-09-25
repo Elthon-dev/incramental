@@ -15,6 +15,7 @@ object SaveCodec {
     const val VERSION = 1
     const val MAX_PAYLOAD_BYTES = 8 * 1024 * 1024
     private const val MAGIC = 0x494E464E
+    private const val HEADER_BYTES = 16
 
     fun encode(save: GameSave): ByteArray {
         val payload = ByteArrayOutputStream()
@@ -36,7 +37,7 @@ object SaveCodec {
     }
 
     fun decode(bytes: ByteArray): GameSave {
-        if (bytes.size < 20) throw SaveException("save is truncated")
+        if (bytes.size < HEADER_BYTES) throw SaveException("save is truncated")
         return try {
             DataInputStream(ByteArrayInputStream(bytes)).use { input ->
                 if (input.readInt() != MAGIC) throw SaveException("invalid save magic")
@@ -44,7 +45,7 @@ object SaveCodec {
                 if (version != VERSION) throw SaveException("unsupported save version $version")
                 val length = input.readInt()
                 val checksum = input.readInt()
-                if (length < 0 || length > MAX_PAYLOAD_BYTES || length > bytes.size - 20) throw SaveException("invalid save length")
+                if (length < 0 || length > MAX_PAYLOAD_BYTES || length > bytes.size - HEADER_BYTES) throw SaveException("invalid save length")
                 val payload = ByteArray(length)
                 var offset = 0
                 while (offset < length) {

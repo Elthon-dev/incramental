@@ -58,8 +58,8 @@ object Num {
         } else {
             decimal(kotlin.math.ln(normalized.toDouble()))
         }
-        repeat(24) {
-            estimate = divide(add(estimate, divide(normalized, estimate)), TWO)
+        repeat(16) {
+            estimate = add(subtract(estimate, ONE), divide(normalized, exp(estimate)))
         }
         return add(estimate, multiply(decimal(decimalExponent), LN10))
     }
