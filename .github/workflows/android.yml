@@ -115,9 +115,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          REPO="${{ github.repository }}"
           NOTES="Endless Android combat roguelite. Download INFINITE.apk and allow installation from unknown sources."
-          if gh release view v1.0.0 >/dev/null 2>&1; then
-            gh release upload v1.0.0 dist/INFINITE.apk dist/INFINITE.apk.sha256 dist/INFINITE-apk.zip --clobber
+          if gh release view v1.0.0 --repo "$REPO" >/dev/null 2>&1; then
+            gh release upload v1.0.0 dist/INFINITE.apk dist/INFINITE.apk.sha256 dist/INFINITE-apk.zip --clobber --repo "$REPO"
           else
-            gh release create v1.0.0 dist/INFINITE.apk dist/INFINITE.apk.sha256 dist/INFINITE-apk.zip --title "INFINITE v1.0.0" --notes "$NOTES"
+            gh release create v1.0.0 dist/INFINITE.apk dist/INFINITE.apk.sha256 dist/INFINITE-apk.zip --title "INFINITE v1.0.0" --notes "$NOTES" --repo "$REPO" --target "${{ github.sha }}"
           fi
