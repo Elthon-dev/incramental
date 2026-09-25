@@ -105,12 +105,19 @@ jobs:
         with:
           name: INFINITE-android-apk
           path: dist
+      - name: Extract APK package
+        run: |
+          set -euo pipefail
+          unzip -o dist/INFINITE-apk.zip -d dist
+          test -s dist/INFINITE.apk
+          test -s dist/INFINITE.apk.sha256
       - name: Create or update release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          NOTES="Endless Android combat roguelite. Download INFINITE.apk and allow installation from unknown sources."
           if gh release view v1.0.0 >/dev/null 2>&1; then
-            gh release upload v1.0.0 dist/INFINITE.apk dist/INFINITE.apk.sha256 --clobber
+            gh release upload v1.0.0 dist/INFINITE.apk dist/INFINITE.apk.sha256 dist/INFINITE-apk.zip --clobber
           else
-            gh release create v1.0.0 dist/INFINITE.apk dist/INFINITE.apk.sha256 --title "INFINITE v1.0.0" --notes "Endless Android combat roguelite. Download INFINITE.apk and allow installation from unknown sources."
+            gh release create v1.0.0 dist/INFINITE.apk dist/INFINITE.apk.sha256 dist/INFINITE-apk.zip --title "INFINITE v1.0.0" --notes "$NOTES"
           fi
