@@ -75,7 +75,7 @@ class FoundationTest {
         assertEquals(15f, position.x, 0.0001f)
         position.subtractInPlace(Vec2(5f, 5f))
         assertEquals(10f, position.x, 0.0001f)
-        assertEquals(15f, position.y, 0.0001f)
+        assertEquals(10f, position.y, 0.0001f)
         val fresh = Vec2(3f, 4f)
         assertEquals(5f, fresh.length(), 0.0001f)
         assertEquals(1f, fresh.normalized().length(), 0.0001f)

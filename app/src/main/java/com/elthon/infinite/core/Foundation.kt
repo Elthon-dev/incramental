@@ -80,8 +80,11 @@ object Num {
     }
 
     fun power(base: BigDecimal, exponent: BigDecimal): BigDecimal {
+        if (exponent.compareTo(ZERO) == 0) return ONE
         if (exponent.compareTo(ZERO) < 0) return ZERO
         if (base.compareTo(ONE) == 0) return ONE
+        if (base.compareTo(ZERO) == 0) return ZERO
+        if (base.compareTo(ZERO) < 0) return ZERO
         return exp(multiply(exponent, ln(base)))
     }
 
@@ -111,20 +114,16 @@ object Num {
         val safe = sanitize(value)
         if (safe.compareTo(ZERO) == 0) return "0"
         val sign = if (safe.signum() < 0) "-" else ""
-        val absolute = safe.abs().round(MathContext(7, RoundingMode.HALF_UP))
+        val absolute = safe.abs().round(MathContext(9, RoundingMode.HALF_UP))
         val exponent = absolute.precision() - absolute.scale() - 1
-        if (exponent < 6) {
-            val decimals = when {
-                exponent < 0 -> 0
-                exponent < 3 -> 1
-                else -> 0
-            }
+        if (exponent < 3) {
+            val decimals = if (exponent < 0) 0 else 2
             return sign + absolute.setScale(decimals, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()
         }
-        if (exponent < 36) {
+        if (exponent < 30) {
             val tier = exponent / 3
-            val shortened = absolute.divide(TEN.pow(tier * 3), MathContext(6))
-            return sign + shortened.stripTrailingZeros().toPlainString() + suffixes[tier]
+            val shortened = absolute.divide(TEN.pow(tier * 3), MathContext(3, RoundingMode.HALF_UP))
+            return sign + shortened.stripTrailingZeros().toPlainString() + suffixes[tier.toInt()]
         }
         val mantissa = absolute.movePointLeft(exponent).setScale(2, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()
         return sign + mantissa + "e" + formatExponent(exponent.toLong())
@@ -132,7 +131,8 @@ object Num {
 
     fun formatStage(stage: Long): String {
         if (stage < 1_000_000) return group(stage)
-        return group(stage / 1_000_000) + "M"
+        if (stage < 1_000_000_000L) return format(decimal(stage).divide(decimal(1_000_000L), MC)) + "M"
+        return format(decimal(stage)) + "S"
     }
 
     private fun expSmall(value: BigDecimal): BigDecimal {
