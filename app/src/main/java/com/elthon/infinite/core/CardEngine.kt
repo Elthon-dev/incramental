@@ -270,6 +270,26 @@ object CardGenerator {
         )
     }
 
+    private fun effect(
+        kind: EffectKind,
+        trigger: Trigger,
+        amount: BigDecimal,
+        status: StatusType? = null,
+        text: String
+    ): CardEffect = CardEffect(kind = kind, trigger = trigger, amount = amount, status = status, text = text)
+
+    private fun pityLimit(profile: MetaProfile): Int = if (profile.rank(MetaUpgrade.LUCK) > 0) 12 else 16
+
+    private fun decimalPercent(fraction: BigDecimal): BigDecimal = Num.multiply(fraction, Num.HUNDRED)
+
+    private fun percentText(value: BigDecimal): String =
+        Num.multiply(Num.add(Num.ONE, Num.divide(value, Num.HUNDRED)), Num.decimal("100"))
+            .setScale(0, java.math.RoundingMode.HALF_UP)
+            .stripTrailingZeros()
+            .toPlainString() + "%"
+
+    private fun stageToken(stage: Long): String = java.lang.Long.toUnsignedString(stage, 36)
+
     private fun chooseFamily(run: RunState, profile: MetaProfile, excluded: Set<CardFamily>): CardFamily {
         val available = CardFamily.entries.filter { it.unlockStage <= profile.bestStage.coerceAtLeast(run.stage) && it !in excluded }
             .ifEmpty { CardFamily.entries.filter { it.unlockStage <= profile.bestStage.coerceAtLeast(1L) } }
@@ -331,7 +351,7 @@ object SynergyEngine {
         if (familyCards.getOrDefault(CardFamily.FORESIGHT, emptyList()).map { it.id }.distinct().size >= 2) active += "deep_foresight"
         if (familyCards.getOrDefault(CardFamily.FRACTAL, emptyList()).map { it.id }.distinct().size >= 2) active += "fractal_recursion"
         if (familyCards.getOrDefault(CardFamily.BLOOD, emptyList()).map { it.id }.distinct().size >= 2 && familyCards.getOrDefault(CardFamily.ECHO, emptyList()).isNotEmpty()) active += "blood_echo"
-        if (run.cards.map { it.id }.distinct().count { it.rarity.rank >= Rarity.RARE.rank } >= 3) active += "execution_protocol"
+        if (run.cards.count { it.rarity.rank >= Rarity.RARE.rank } >= 3) active += "execution_protocol"
         if (familyCards.getOrDefault(CardFamily.IRON_WILL, emptyList()).isNotEmpty() && familyCards.getOrDefault(CardFamily.LAST_STAND, emptyList()).isNotEmpty()) active += "last_light"
         val newlyActive = active.filterNot { run.synergies.contains(it) }
         run.pendingSynergies.addAll(newlyActive)
@@ -343,7 +363,7 @@ object SynergyEngine {
         val counts = run.cards.groupBy { it.family }.mapValues { (_, cards) -> cards.map { card -> card.id }.distinct().size }
         return when (id) {
             "blood_echo" -> "${counts[CardFamily.BLOOD] ?: 0}/2 Blood + ${if ((counts[CardFamily.ECHO] ?: 0) > 0) "1" else "0"}/1 Echo"
-            "execution_protocol" -> "${run.cards.map { it.id }.distinct().count { it.rarity.rank >= Rarity.RARE.rank }}/3 Rare+"
+            "execution_protocol" -> "${run.cards.count { it.rarity.rank >= Rarity.RARE.rank }}/3 Rare+"
             "last_light" -> "${if ((counts[CardFamily.IRON_WILL] ?: 0) > 0) "1" else "0"}/1 Iron Will + ${if ((counts[CardFamily.LAST_STAND] ?: 0) > 0) "1" else "0"}/1 Last Stand"
             else -> "${counts[familyForSynergy(id)] ?: 0}/2"
         }
@@ -436,8 +456,4 @@ object CardEngine {
         .filter { it.trigger == trigger && it.kind == kind }
         .fold(Num.ZERO) { total, effect -> Num.add(total, effect.amount) }
 
-    private fun pityLimit(profile: MetaProfile): Int = if (profile.rank(MetaUpgrade.LUCK) > 0) 12 else 16
-    private fun decimalPercent(fraction: BigDecimal): BigDecimal = Num.multiply(fraction, Num.HUNDRED)
-    private fun percentText(value: BigDecimal): String = "${Num.decimal(1).add(Num.divide(value, Num.HUNDRED)).setScale(2, java.math.RoundingMode.HALF_UP).stripTrailingZeros().toPlainString()}x"
-    private fun stageToken(stage: Long): String = java.lang.Long.toUnsignedString(stage, 36)
 }

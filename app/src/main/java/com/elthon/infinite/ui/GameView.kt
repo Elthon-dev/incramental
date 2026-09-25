@@ -49,7 +49,6 @@ class GameView(context: Context, store: SaveStore, audio: AudioEngine) : Surface
     fun backPressed(): Boolean = synchronized(eventLock) { session.onBackPressed() }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
-        surfaceReady.countDown()
         if (thread == null) {
             thread = GameThread(holder).also { it.start() }
         }

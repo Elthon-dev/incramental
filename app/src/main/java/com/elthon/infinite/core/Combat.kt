@@ -476,7 +476,7 @@ object CombatEngine {
                         StatusType.SHOCK -> Num.multiply(Num.decimal(status.stacks), Num.multiply(status.sourcePower, Num.decimal("0.14")))
                         else -> Num.ZERO
                     }
-                    if (damage.compareTo(Num.ZERO) > 0) damageEnemy(run, profile, enemy, damage, enemy.position, status.color, false)
+                    if (damage.compareTo(Num.ZERO) > 0) damageEnemy(run, profile, enemy, damage, enemy.position, statusColor(status.type), false)
                 }
                 if (status.remaining <= 0f) enemy.statuses.remove(status)
             }
@@ -499,6 +499,14 @@ object CombatEngine {
             }
             if (status.remaining <= 0f) run.player.statuses.remove(status)
         }
+    }
+
+    private fun statusColor(status: StatusType): Int = when (status) {
+        StatusType.BURN -> 0xFFFF7A3D.toInt()
+        StatusType.SHOCK -> 0xFF6FD8FF.toInt()
+        StatusType.FREEZE -> 0xFF9BE7FF.toInt()
+        StatusType.POISON -> 0xFF9BE36A.toInt()
+        StatusType.CORRODE -> 0xFFC08BFF.toInt()
     }
 
     private fun effectiveStats(run: RunState, profile: MetaProfile): PlayerStats {

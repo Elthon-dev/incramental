@@ -22,7 +22,7 @@ object Num {
     fun decimal(value: String): BigDecimal = BigDecimal(value, MC)
     fun decimal(value: Long): BigDecimal = BigDecimal.valueOf(value)
     fun decimal(value: Int): BigDecimal = BigDecimal.valueOf(value.toLong())
-    fun decimal(value: Double): BigDecimal = if (value.isFinite()) BigDecimal.valueOf(value, MC) else ZERO
+    fun decimal(value: Double): BigDecimal = if (value.isFinite()) BigDecimal.valueOf(value).round(MC) else ZERO
 
     fun add(left: BigDecimal, right: BigDecimal): BigDecimal = sanitize(left.add(right, MC))
     fun subtract(left: BigDecimal, right: BigDecimal): BigDecimal = sanitize(left.subtract(right, MC))
@@ -98,6 +98,9 @@ object Num {
 
     fun toInt(value: BigDecimal, minimum: Int = Int.MIN_VALUE, maximum: Int = Int.MAX_VALUE): Int =
         toLong(value, minimum.toLong(), maximum.toLong()).toInt()
+
+    fun toFloat(value: BigDecimal, minimum: Float, maximum: Float): Float =
+        toDouble(value).toFloat().coerceIn(minimum, maximum)
 
     fun toDouble(value: BigDecimal, fallback: Double = 0.0): Double {
         val result = sanitize(value).toDouble()

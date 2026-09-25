@@ -27,8 +27,8 @@ class Renderer(private val session: GameSession) {
     private val sectionPaint = Ui.text(24f, Ink.TEXT_DIM, Ui.display)
 
     fun draw(canvas: Canvas) {
-        val width = canvas.width().toFloat()
-        val height = canvas.height().toFloat()
+        val width = canvas.width.toFloat()
+        val height = canvas.height.toFloat()
         val scale = min(width / Ui.WIDTH, height / Ui.HEIGHT)
         val offsetX = (width - Ui.WIDTH * scale) / 2f
         val offsetY = (height - Ui.HEIGHT * scale) / 2f
@@ -110,7 +110,7 @@ class Renderer(private val session: GameSession) {
         canvas.drawText(bestLabel, Ui.MARGIN + 22f, 634f, Ui.text(22f, Ink.TEXT_DIM, Ui.display))
         canvas.drawText(aetherLabel, Ui.MARGIN + 22f, 668f, Ui.text(26f, Ink.GOLD, Ui.numeric))
 
-        val hasRun = session.run != null && session.run.phase != CombatPhase.GAME_OVER
+        val hasRun = session.run?.phase != null && session.run?.phase != CombatPhase.GAME_OVER
         if (hasRun) {
             val active = session.run!!
             button(canvas, Ids.CONTINUE_RUN, Ui.MARGIN, 720f, Ui.WIDTH - Ui.MARGIN, 830f, "RESUME STAGE ${Num.formatStage(active.stage)}", Ink.CYAN, Ink.VOID)
@@ -589,7 +589,7 @@ class Renderer(private val session: GameSession) {
 
     private fun floatingText(canvas: Canvas) {
         session.floating.forEach { item ->
-            val progress = (item.age / 1.25f).coerceIn(0f, 1f)
+            val progress = ((session.animTime - item.born) / 1.25f).coerceIn(0f, 1f)
             val alpha = if (progress < 0.7f) 1f else 1f - (progress - 0.7f) / 0.3f
             val y = item.y - item.rise * progress
             canvas.drawText(item.text, item.x, y, Ui.text(item.size, Ui.alpha(item.color, alpha), Ui.numeric, Paint.Align.CENTER))

@@ -84,7 +84,7 @@ class AudioEngine(context: Context) {
 
     private fun buildTracks() {
         Sfx.entries.forEach { sound ->
-            val buffer = synth(sound.durationSeconds, sound::sample)
+            val buffer = synth(sound.durationSeconds()) { time, envelope -> sound.sample(time, envelope) }
             tracks[sound] = createTrack(buffer) ?: return@forEach
         }
     }
@@ -141,7 +141,7 @@ class AudioEngine(context: Context) {
             )
         }
         track.write(buffer, 0, buffer.size)
-        if (loop) track.setLoopPoints(0, buffer.size)
+        if (loop) track.setLoopPoints(0, buffer.size, -1)
         track
     } catch (error: Exception) {
         Log.w(TAG, "track creation failed", error)

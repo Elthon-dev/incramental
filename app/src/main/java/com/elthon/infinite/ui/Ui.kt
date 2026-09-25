@@ -25,7 +25,7 @@ object Ink {
     const val MAGENTA = 0xFFFF4D8D.toInt()
     const val GOLD = 0xFFFFD166.toInt()
     const val VIOLET = 0xFFB46CFF.toInt()
-    const LIME = 0xFF61F2A8.toInt()
+    const val LIME = 0xFF61F2A8.toInt()
     const val DANGER = 0xFFFF3864.toInt()
     const val ARENA = 0xFF0A0E1C.toInt()
     const val ARENA_EDGE = 0xFF16203C.toInt()

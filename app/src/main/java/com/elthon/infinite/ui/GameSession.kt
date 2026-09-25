@@ -96,10 +96,9 @@ class GameSession(private val store: SaveStore, private val audio: AudioEngine) 
             val report = OfflineProgress.calculate(save.profile, now)
             if (report.energyAwarded.compareTo(BigDecimal.ZERO) > 0) offlineReport = report
         }
-        if (run != null && run.phase == CombatPhase.CARD_PICKER) screen = Screen.CARDS
-        if (run != null && run.phase == CombatPhase.EVENT) screen = Screen.EVENT
-        if (run != null) {
-            screen = when (run.phase) {
+        val restored = run
+        if (restored != null) {
+            screen = when (restored.phase) {
                 CombatPhase.CARD_PICKER -> Screen.CARDS
                 CombatPhase.EVENT -> Screen.EVENT
                 CombatPhase.GAME_OVER -> Screen.GAMEOVER
@@ -128,8 +127,7 @@ class GameSession(private val store: SaveStore, private val audio: AudioEngine) 
         if (bannerTimer <= 0f) banner = null
         shake = max(0f, shake - dt * 5.5f)
         for (index in floating.indices.reversed()) {
-            floating[index] = floating[index].copy(age = floating[index].age + dt)
-            if (floating[index].age > 1.25f) floating.removeAt(index)
+            if (animTime - floating[index].born > 1.25f) floating.removeAt(index)
         }
         input.drainReleases().forEach { handleTap(it) }
         val active = run

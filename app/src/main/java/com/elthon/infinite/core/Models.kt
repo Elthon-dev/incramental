@@ -209,6 +209,18 @@ data class CardDefinition(
     val description: String = (modifiers.map { modifierText(it) } + rules.map { it.text }).distinct().joinToString("\n")
 }
 
+fun modifierText(modifier: StatModifier): String {
+    val value = Num.format(modifier.amount)
+    val suffix = if (modifier.stat.label.endsWith("chance")) "%" else ""
+    val sign = if (modifier.operation == ModifierOperation.ADD) "+" else ""
+    val body = when (modifier.operation) {
+        ModifierOperation.ADD -> "$sign$value$suffix ${modifier.stat.label}"
+        ModifierOperation.MULTIPLY -> "x$value ${modifier.stat.label}"
+        ModifierOperation.MAX -> "$value ${modifier.stat.label} cap"
+    }
+    return if (modifier.condition == EffectCondition.ALWAYS) body else "$body (conditional)"
+}
+
 data class StatusState(
     val type: StatusType,
     var stacks: Int = 1,
@@ -268,14 +280,14 @@ data class ProjectileState(
     val id: Long,
     val team: ProjectileTeam,
     val position: Vec2,
-    val targetX: Float,
-    val targetY: Float,
+    var targetX: Float,
+    var targetY: Float,
     val speed: Float,
     val damage: BigDecimal,
     val radius: Float,
     val color: Int,
     val piercing: Int = 0,
-    val life: Float = 1.6f,
+    var life: Float = 1.6f,
     val homingId: Long? = null,
     val status: StatusType? = null,
     val statusChance: BigDecimal = Num.ZERO,
@@ -355,7 +367,7 @@ data class RunState(
     var cards: MutableList<CardDefinition> = mutableListOf(),
     var cardOffers: MutableList<CardDefinition> = mutableListOf(),
     var synergies: MutableSet<String> = linkedSetOf(),
-    var pendingSynergies: MutableList<String> = mutableListOf(),
+    var pendingSynergies: MutableSet<String> = linkedSetOf(),
     var nextEntityId: Long = 1L,
     var nextProjectileId: Long = 1L,
     var rarePity: Int = 0,

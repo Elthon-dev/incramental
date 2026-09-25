@@ -1,5 +1,6 @@
 package com.elthon.infinite.core
 
+import java.math.BigDecimal
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -407,7 +408,7 @@ object SaveCodec {
         val life = input.readFloat().coerceIn(-10f, 60f)
         val homing = if (input.readBoolean()) input.readLong() else null
         val status = if (input.readBoolean()) enumValue<StatusType>(readString(input, 64)) else null
-        val chance = readBigDecimal(input).coerceIn(Num.ZERO, Num.ONE)
+        val chance = Num.clamp(readBigDecimal(input), Num.ZERO, Num.ONE)
         val chain = input.readInt().coerceIn(0, 100)
         return ProjectileState(id, team, position, targetX, targetY, speed, damage, radius, color, piercing, life, homing, status, chance, chain)
     }
@@ -491,7 +492,7 @@ object SaveCodec {
             status.stacks = boundedInt(input.readInt(), 0, 1000, "status stacks")
             status.remaining = input.readFloat().coerceIn(-10f, 600f)
             status.tickTimer = input.readFloat().coerceIn(-10f, 60f)
-            status.sourcePower = readBigDecimal(input).coerceAtLeast(Num.ZERO)
+            status.sourcePower = Num.max(readBigDecimal(input), Num.ZERO)
             statuses.add(status)
         }
         return statuses
