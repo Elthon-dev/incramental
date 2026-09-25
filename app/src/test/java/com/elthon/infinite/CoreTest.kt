@@ -306,7 +306,7 @@ class CombatTest {
                     CombatEngine.advanceAfterChoice(run, profile)
                 }
                 CombatPhase.EVENT -> {
-                    val event = run.specialEvent ?: fail("event phase without an event")
+                    val event = requireNotNull(run.specialEvent) { "event phase without an event" }
                     ProgressionEngine.resolveEvent(run, profile, event.choices.last().tag)
                     CombatEngine.advanceAfterChoice(run, profile)
                 }
