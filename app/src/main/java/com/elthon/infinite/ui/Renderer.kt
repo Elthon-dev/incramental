@@ -171,7 +171,7 @@ class Renderer(private val session: GameSession) {
             maxed -> Ui.alpha(Ink.PANEL_LIGHT, 0.7f)
             locked -> Ui.alpha(Ink.PANEL_LIGHT, 0.7f)
             affordable -> Ink.CYAN
-            else -> Ui.PANEL_LIGHT
+            else -> Ink.PANEL_LIGHT
         }, if (affordable) Ink.VOID else Ink.TEXT_DIM, enabled)
     }
 

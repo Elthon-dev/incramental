@@ -167,7 +167,7 @@ object CombatEngine {
         }
         clampPosition(run.player.position, CombatRules.PLAYER_RADIUS)
         val regen = stats[StatId.REGEN]
-        if (regen.compareTo(Num.ZERO) > 0) healPlayer(run, Num.multiply(regen, Num.decimal(dt)), false)
+        if (regen.compareTo(Num.ZERO) > 0) healPlayer(run, Num.multiply(regen, Num.decimal(dt.toDouble())), false)
         val healthRatio = StatsEngine.playerHealthRatio(run, stats[StatId.MAX_HP])
         if (healthRatio < Num.decimal("0.25") && !run.player.lowHealthTriggered) {
             run.player.lowHealthTriggered = true
@@ -476,7 +476,7 @@ object CombatEngine {
                         StatusType.SHOCK -> Num.multiply(Num.decimal(status.stacks), Num.multiply(status.sourcePower, Num.decimal("0.14")))
                         else -> Num.ZERO
                     }
-                    if (damage.compareTo(Num.ZERO) > 0) damageEnemy(run, profile, enemy, damage, enemy.position, statusColor(status.type), false)
+                    if (damage.compareTo(Num.ZERO) > 0) damageEnemy(run, profile, enemy, damage, enemy.position, status.type.color, false)
                 }
                 if (status.remaining <= 0f) enemy.statuses.remove(status)
             }
@@ -499,14 +499,6 @@ object CombatEngine {
             }
             if (status.remaining <= 0f) run.player.statuses.remove(status)
         }
-    }
-
-    private fun statusColor(status: StatusType): Int = when (status) {
-        StatusType.BURN -> 0xFFFF7A3D.toInt()
-        StatusType.SHOCK -> 0xFF6FD8FF.toInt()
-        StatusType.FREEZE -> 0xFF9BE7FF.toInt()
-        StatusType.POISON -> 0xFF9BE36A.toInt()
-        StatusType.CORRODE -> 0xFFC08BFF.toInt()
     }
 
     private fun effectiveStats(run: RunState, profile: MetaProfile): PlayerStats {

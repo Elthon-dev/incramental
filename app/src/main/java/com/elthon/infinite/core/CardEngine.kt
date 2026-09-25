@@ -149,7 +149,7 @@ object CardGenerator {
 
     fun build(run: RunState, family: CardFamily, rarity: Rarity): CardDefinition {
         val rank = rarity.rank
-        val strength = decimalPercent(0.1 + rank * 0.055)
+        val strength = decimalPercent(Num.decimal(0.1 + rank * 0.055))
         val modifiers = mutableListOf<StatModifier>()
         val rules = mutableListOf<CardEffect>()
         val tags = linkedSetOf(family.name.lowercase(), family.displayName.lowercase())
@@ -259,7 +259,7 @@ object CardGenerator {
         if (rarity.rank >= 4) tags.add("finisher")
         if (rarity == Rarity.ANOMALOUS) tags.add("anomalous")
         return CardDefinition(
-            id = "${family.name.lowercase()}-${rarity.name.lowercase()}-$stageToken(run.stage)}-${run.rng.nextLong().toULong().toString(16)}",
+            id = "${family.name.lowercase()}-${rarity.name.lowercase()}-${stageToken(run.stage)}-${run.rng.nextLong().toULong().toString(16)}",
             title = title,
             family = family,
             rarity = rarity,
