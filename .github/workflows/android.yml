@@ -1,0 +1,88 @@
+name: Android CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test and build APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Android SDK 35
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Test, lint, and assemble
+        run: ./gradlew --no-daemon clean testDebugUnitTest lintDebug assembleDebug --stacktrace
+      - name: Verify APK
+        run: |
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          apksigner verify --verbose --print-certs app/build/outputs/apk/debug/app-debug.apk
+          aapt dump badging app/build/outputs/apk/debug/app-debug.apk
+      - name: Package downloadable artifact
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/INFINITE.apk
+          sha256sum dist/INFINITE.apk > dist/INFINITE.apk.sha256
+          zip -j dist/INFINITE-apk.zip dist/INFINITE.apk dist/INFINITE.apk.sha256
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: INFINITE-android-apk
+          path: dist/INFINITE-apk.zip
+          if-no-files-found: error
+          retention-days: 30
+      - name: Write job summary
+        run: |
+          printf '### INFINITE Android build\n\n' >> "$GITHUB_STEP_SUMMARY"
+          printf 'APK package: `INFINITE-apk.zip`\n\n' >> "$GITHUB_STEP_SUMMARY"
+          printf 'SHA-256: `%s`\n' "$(cut -d' ' -f1 dist/INFINITE.apk.sha256)" >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    name: Publish APK release
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: INFINITE-android-apk
+          path: dist
+      - name: Create or update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v1.0.0 >/dev/null 2>&1; then
+            gh release upload v1.0.0 dist/INFINITE.apk dist/INFINITE.apk.sha256 --clobber
+          else
+            gh release create v1.0.0 dist/INFINITE.apk dist/INFINITE.apk.sha256 --title "INFINITE v1.0.0" --notes "Endless Android combat roguelite. Download INFINITE.apk and allow installation from unknown sources."
+          fi
