@@ -74,9 +74,10 @@ object Num {
             return BigDecimal("${mantissa.toPlainString()}E$exponent")
         }
         if (safe.compareTo(decimal("-120")) < 0) return ZERO
-        val decimalExponent = safe.divide(LN10, MC).setScale(0, RoundingMode.FLOOR).toInt()
-        val remainder = subtract(safe, multiply(decimal(decimalExponent), LN10))
-        return sanitize(expSmall(remainder) * TEN.pow(decimalExponent))
+        val decimalExponent = safe.divide(LN10, MC).setScale(0, RoundingMode.FLOOR)
+        val remainder = subtract(safe, multiply(decimalExponent, LN10))
+        val mantissa = expSmall(remainder)
+        return BigDecimal(mantissa.toPlainString() + "E" + decimalExponent.toBigInteger().toString())
     }
 
     fun power(base: BigDecimal, exponent: BigDecimal): BigDecimal {
