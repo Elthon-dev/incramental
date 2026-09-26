@@ -20,16 +20,23 @@ class SaveStore(context: Context) {
     }
 
     fun load(): GameSave? {
-        val bytes = readFirstValid() ?: return null
-        return try {
-            SaveCodec.decode(bytes)
-        } catch (error: SaveException) {
-            Log.w(TAG, "save rejected: ${error.message}")
-            null
-        } catch (error: Exception) {
-            Log.w(TAG, "save unreadable", error)
-            null
+        for (candidate in listOf(target, backup, temporary)) {
+            if (!candidate.exists() || candidate.length() == 0L) continue
+            val bytes = try {
+                candidate.readBytes()
+            } catch (error: Exception) {
+                Log.w(TAG, "save unreadable from ${candidate.name}", error)
+                null
+            } ?: continue
+            try {
+                return SaveCodec.decode(bytes)
+            } catch (error: SaveException) {
+                Log.w(TAG, "save rejected from ${candidate.name}: ${error.message}")
+            } catch (error: Exception) {
+                Log.w(TAG, "save invalid from ${candidate.name}", error)
+            }
         }
+        return null
     }
 
     fun saveAsync(save: GameSave) {
@@ -89,19 +96,6 @@ class SaveStore(context: Context) {
         } catch (error: Exception) {
             Log.w(TAG, "save write failed", error)
         }
-    }
-
-    private fun readFirstValid(): ByteArray? {
-        listOf(target, backup, temporary).forEach { candidate ->
-            if (!candidate.exists() || candidate.length() == 0L) return@forEach
-            val bytes = try {
-                candidate.readBytes()
-            } catch (error: Exception) {
-                null
-            }
-            if (bytes != null) return bytes
-        }
-        return null
     }
 
     private companion object {

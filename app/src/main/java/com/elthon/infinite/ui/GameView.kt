@@ -61,11 +61,11 @@ class GameView(context: Context, store: SaveStore, audio: AudioEngine) : Surface
         queue.offer(PointerEvent(PointerEvent.Kind.SHUTDOWN, -1, 0f, 0f))
         current?.join(4_000L)
         thread = null
-        storeRef.shutdown()
     }
 
     fun release() {
         session.release()
+        storeRef.shutdown()
     }
 
     @SuppressLint("ClickableViewAccessibility")
